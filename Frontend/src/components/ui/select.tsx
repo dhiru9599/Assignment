@@ -25,7 +25,7 @@ const Select: React.FC<SelectProps> = ({ value, onValueChange, children, disable
   const [open, setOpen] = React.useState(false)
   const triggerRef = React.useRef<HTMLButtonElement>(null)
 
-  // Close dropdown when clicking outside
+
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (triggerRef.current && !triggerRef.current.contains(event.target as Node)) {
@@ -99,12 +99,12 @@ const SelectContent: React.FC<{
   const context = React.useContext(SelectContext)
   const [position, setPosition] = React.useState({ top: 0, left: 0, width: 0 })
   
-  // Calculate position based on trigger element
+
   React.useEffect(() => {
     if (context?.open && context.triggerRef.current) {
       const rect = context.triggerRef.current.getBoundingClientRect()
       setPosition({
-        top: rect.bottom + window.scrollY + 4, // 4px offset
+        top: rect.bottom + window.scrollY + 4, 
         left: rect.left + window.scrollX,
         width: rect.width
       })
@@ -130,7 +130,7 @@ const SelectContent: React.FC<{
     </div>
   )
 
-  // Use portal to render dropdown at document body level
+ 
   return typeof document !== 'undefined' ? ReactDOM.createPortal(dropdownContent, document.body) : null
 }
 
