@@ -3,9 +3,9 @@ from django.db import models
 class Todo(models.Model):
     STATUS_CHOICES = [
         ('todo', 'Todo'),
-        ('in_progress', 'In Progress'),
-        ('done', 'Done'),
-        ('archived', 'Archived'),
+        ('inprogress', 'InProgress'),
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
     ]
     
     title = models.CharField(max_length=200)

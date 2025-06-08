@@ -1,5 +1,4 @@
 import * as React from "react"
-import * as ReactDOM from "react-dom"
 import { ChevronDown } from "lucide-react"
 import { cn } from "../../utils/cn"
 
@@ -7,7 +6,6 @@ interface SelectProps {
   value?: string
   onValueChange?: (value: string) => void
   children: React.ReactNode
-  disabled?: boolean
 }
 
 interface SelectContextType {
@@ -15,32 +13,48 @@ interface SelectContextType {
   onValueChange?: (value: string) => void
   open: boolean
   setOpen: (open: boolean) => void
-  triggerRef: React.RefObject<HTMLButtonElement>
-  disabled?: boolean
+}
+
+const openSelects = new Set<string>()
+const selectListeners = new Set<() => void>()
+
+const notifySelectChange = () => {
+  selectListeners.forEach(listener => listener())
 }
 
 const SelectContext = React.createContext<SelectContextType | null>(null)
 
-const Select: React.FC<SelectProps> = ({ value, onValueChange, children, disabled }) => {
+const Select: React.FC<SelectProps> = ({ value, onValueChange, children }) => {
   const [open, setOpen] = React.useState(false)
-  const triggerRef = React.useRef<HTMLButtonElement>(null)
-
-
+  const selectId = React.useRef(Math.random().toString(36).substr(2, 9))
+  
   React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (triggerRef.current && !triggerRef.current.contains(event.target as Node)) {
+    const handleSelectChange = () => {
+      if (open && !openSelects.has(selectId.current)) {
         setOpen(false)
       }
     }
-
-    if (open) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+    
+    selectListeners.add(handleSelectChange)
+    return () => {
+      selectListeners.delete(handleSelectChange)
+      openSelects.delete(selectId.current)
     }
   }, [open])
+  
+  const handleSetOpen = React.useCallback((newOpen: boolean) => {
+    if (newOpen) {
+      openSelects.clear()
+      openSelects.add(selectId.current)
+      notifySelectChange()
+    } else {
+      openSelects.delete(selectId.current)
+    }
+    setOpen(newOpen)
+  }, [])
 
   return (
-    <SelectContext.Provider value={{ value, onValueChange, open, setOpen, triggerRef, disabled }}>
+    <SelectContext.Provider value={{ value, onValueChange, open, setOpen: handleSetOpen }}>
       <div className="relative">
         {children}
       </div>
@@ -56,23 +70,13 @@ const SelectTrigger = React.forwardRef<
   
   return (
     <button
-      ref={(node) => {
-        if (context?.triggerRef) {
-          (context.triggerRef as any).current = node
-        }
-        if (typeof ref === 'function') {
-          ref(node)
-        } else if (ref) {
-          ref.current = node
-        }
-      }}
+      ref={ref}
       type="button"
-      disabled={context?.disabled}
       className={cn(
         "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
-      onClick={() => !context?.disabled && context?.setOpen(!context.open)}
+      onClick={() => context?.setOpen(!context.open)}
       {...props}
     >
       {children}
@@ -97,41 +101,25 @@ const SelectContent: React.FC<{
   children: React.ReactNode
 }> = ({ className, children }) => {
   const context = React.useContext(SelectContext)
-  const [position, setPosition] = React.useState({ top: 0, left: 0, width: 0 })
   
-
-  React.useEffect(() => {
-    if (context?.open && context.triggerRef.current) {
-      const rect = context.triggerRef.current.getBoundingClientRect()
-      setPosition({
-        top: rect.bottom + window.scrollY + 4, 
-        left: rect.left + window.scrollX,
-        width: rect.width
-      })
-    }
-  }, [context?.open])
-
   if (!context?.open) return null
 
-  const dropdownContent = (
-    <div
-      className={cn(
-        "fixed z-[9999] max-h-60 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md",
-        className
-      )}
-      style={{
-        top: position.top,
-        left: position.left,
-        width: position.width,
-        minWidth: position.width
-      }}
-    >
-      {children}
-    </div>
+  return (
+    <>
+      <div 
+        className="fixed inset-0 z-40"
+        onClick={() => context.setOpen(false)}
+      />
+      <div
+        className={cn(
+          "absolute bottom-full z-50 mb-1 max-h-60 w-full overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md",
+          className
+        )}
+      >
+        {children}
+      </div>
+    </>
   )
-
- 
-  return typeof document !== 'undefined' ? ReactDOM.createPortal(dropdownContent, document.body) : null
 }
 
 const SelectItem: React.FC<{

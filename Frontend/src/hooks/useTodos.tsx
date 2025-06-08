@@ -62,10 +62,29 @@ export const useTodos = () => {
     }
   }, []);
 
-  // Update todo status
-  const updateTodoStatus = useCallback(async (id: number, status: string) => {
-    return updateTodo(id, { status: status as any });
-  }, [updateTodo]);
+// Update todo status
+const updateTodoStatus = useCallback(async (id: number, status: string) => {
+  try {
+    setError(null);
+    // Get the current todo to preserve other fields
+    const currentTodo = todos.find(todo => todo.id === id);
+    if (!currentTodo) return;
+
+    const updatedTodo = await todoApi.updateTodo(id, {
+      title: currentTodo.title,
+      description: currentTodo.description,
+      status: status as any
+    });
+    
+    setTodos(prev => prev.map(todo => 
+      todo.id === id ? updatedTodo : todo
+    ));
+    return updatedTodo;
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Failed to update todo status');
+    throw err;
+  }
+}, [todos]); 
 
   // Filter todos
   const filterTodos = useCallback((filters: TodoFilters) => {
