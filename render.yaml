@@ -1,7 +1,7 @@
 services:
   - type: web
     name: todo-backend
-    runtime: python
+    env: python
     plan: free
     rootDir: Backend
     buildCommand: pip install -r todo_backend/requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput
@@ -14,7 +14,7 @@ services:
       - key: DJANGO_ALLOWED_HOSTS
         value: "*.onrender.com,localhost,127.0.0.1"
       - key: DJANGO_CSRF_TRUSTED_ORIGINS
-        value: "https://todo-backend.onrender.com,https://todo-frontend.onrender.com"
+        value: "https://todo-backend.onrender.com"
       - key: DATABASE_URL
         fromDatabase:
           name: todo-postgres
@@ -23,16 +23,3 @@ services:
 databases:
   - name: todo-postgres
     plan: free
-
-staticSites:
-  - name: todo-frontend
-    plan: free
-    rootDir: Frontend
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: VITE_API_BASE_URL
-        fromService:
-          name: todo-backend
-          type: web
-          property: url
