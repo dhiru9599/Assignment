@@ -93,7 +93,11 @@ DATABASES = {
 
 # Prefer DATABASE_URL when provided (e.g., Render/Heroku Postgres)
 if os.getenv('DATABASE_URL'):
-    DATABASES['default'] = dj_database_url.config(conn_max_age=600)
+    DATABASES['default'] = dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 
 
 # Password validation
