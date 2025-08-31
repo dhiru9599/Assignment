@@ -85,7 +85,15 @@ WSGI_APPLICATION = 'todo_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Database configuration
+# Database configuration - check if psycopg2 is available before using PostgreSQL
+def can_use_postgres():
+    try:
+        import psycopg2
+        return True
+    except ImportError:
+        return False
+
+# Always start with SQLite
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -93,15 +101,12 @@ DATABASES = {
     }
 }
 
-# Use PostgreSQL only if explicitly running Django commands (not during imports)
-if os.getenv('DATABASE_URL') and (
-    'runserver' in sys.argv or 
-    'migrate' in sys.argv or 
-    'collectstatic' in sys.argv or
-    'gunicorn' in str(sys.argv)
-):
+# Only use PostgreSQL if the module is actually available AND we have a DATABASE_URL
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL and can_use_postgres():
+    # Only switch to PostgreSQL when psycopg2 is confirmed to be available
     DATABASES['default'] = dj_database_url.config(
-        default=os.getenv('DATABASE_URL'),
+        default=DATABASE_URL,
         conn_max_age=600,
     )
 
