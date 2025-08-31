@@ -5,7 +5,7 @@ export const API_BASE_URL = rawApiBase
   ? (rawApiBase.endsWith('/api/todos')
       ? rawApiBase
       : `${rawApiBase.replace(/\/$/, '')}/api/todos`)
-  : "http://localhost:8001/api/todos";
+  : "https://todo-backend-d4rk.onrender.com/api/todos";
 
 export const statusConfig = {
   todo: {
