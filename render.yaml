@@ -21,7 +21,7 @@ services:
           property: connectionString
     autoDeploy: true
 
-  - type: static
+  - type: static_site
     name: todo-frontend
     plan: free
     rootDir: Frontend
