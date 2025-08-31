@@ -85,17 +85,20 @@ WSGI_APPLICATION = 'todo_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Database configuration - completely avoid PostgreSQL during build
-if 'migrate' in sys.argv or 'collectstatic' in sys.argv or os.getenv('DJANGO_RUNTIME'):
-    # Only use PostgreSQL during actual Django operations (not import time)
-    if os.getenv('DATABASE_URL'):
+# Database configuration
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    # Production: Use PostgreSQL
+    try:
         DATABASES = {
             'default': dj_database_url.config(
-                default=os.getenv('DATABASE_URL'),
+                default=DATABASE_URL,
                 conn_max_age=600,
             )
         }
-    else:
+    except Exception:
+        # Fallback to SQLite if PostgreSQL fails
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
@@ -103,11 +106,11 @@ if 'migrate' in sys.argv or 'collectstatic' in sys.argv or os.getenv('DJANGO_RUN
             }
         }
 else:
-    # During build/import: Always use SQLite to avoid psycopg2 loading
+    # Development: Use SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
