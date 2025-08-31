@@ -5,7 +5,10 @@ set -e
 
 echo "Starting Django application..."
 
-# Collect static files (safe to run without database)
+# Set runtime environment variable
+export DJANGO_RUNTIME=true
+
+# Collect static files (now safe with runtime flag)
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
