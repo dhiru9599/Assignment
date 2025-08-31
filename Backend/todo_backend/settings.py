@@ -86,33 +86,24 @@ WSGI_APPLICATION = 'todo_backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 # Database configuration
-DATABASE_URL = os.getenv('DATABASE_URL')
-
-if DATABASE_URL:
-    # Production: Use PostgreSQL
-    try:
-        DATABASES = {
-            'default': dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=600,
-            )
-        }
-    except Exception:
-        # Fallback to SQLite if PostgreSQL fails
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
-else:
-    # Development: Use SQLite
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
+}
+
+# Use PostgreSQL only if explicitly running Django commands (not during imports)
+if os.getenv('DATABASE_URL') and (
+    'runserver' in sys.argv or 
+    'migrate' in sys.argv or 
+    'collectstatic' in sys.argv or
+    'gunicorn' in str(sys.argv)
+):
+    DATABASES['default'] = dj_database_url.config(
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600,
+    )
 
 
 # Password validation
