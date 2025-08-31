@@ -12,7 +12,6 @@ import type { Todo, TodoFilters as FilterType, CreateTodoData, UpdateTodoData } 
 
 const App: React.FC = () => {
   const {
-    todos,
     loading,
     error,
     createTodo,
@@ -50,13 +49,26 @@ const App: React.FC = () => {
   };
 
   // CRUD handlers
-  const handleCreate = async (data: CreateTodoData) => {
-    await createTodo(data);
-  };
-
-  const handleUpdate = async (data: UpdateTodoData) => {
-    if (!editingTodo) return;
-    await updateTodo(editingTodo.id, data);
+  const handleSave = async (data: CreateTodoData | UpdateTodoData) => {
+    if (editingTodo) {
+      // Type guard to ensure we have the right data for update
+      const updateData: UpdateTodoData = {
+        title: data.title,
+        description: data.description,
+        status: 'status' in data ? data.status : editingTodo.status
+      };
+      await updateTodo(editingTodo.id, updateData);
+    } else {
+      // For create, we need to ensure title and description are defined
+      if (!data.title || data.description === undefined) {
+        throw new Error('Title and description are required for creating todos');
+      }
+      const createData: CreateTodoData = {
+        title: data.title,
+        description: data.description
+      };
+      await createTodo(createData);
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -162,7 +174,7 @@ const App: React.FC = () => {
           todo={editingTodo}
           isOpen={isDialogOpen}
           onClose={closeDialog}
-          onSave={editingTodo ? handleUpdate : handleCreate}
+          onSave={handleSave}
         />
       </div>
     </div>

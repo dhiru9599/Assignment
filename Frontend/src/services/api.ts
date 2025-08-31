@@ -1,15 +1,18 @@
 import type { Todo, CreateTodoData, UpdateTodoData } from '../types/todo';
 import { API_BASE_URL } from '../utils/constents';
 class ApiError extends Error {
-  constructor(message: string, public status?: number) {
+  public status?: number;
+  
+  constructor(message: string, status?: number) {
     super(message);
     this.name = 'ApiError';
+    this.status = status;
   }
 }
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
-    const errorText = await response.text();
+    await response.text(); // Read the error text but don't use it
     throw new ApiError(
       `API Error: ${response.status} ${response.statusText}`,
       response.status
