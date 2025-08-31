@@ -1,6 +1,7 @@
 import { Circle, Clock, CheckCircle2 } from "lucide-react";
 
-export const API_BASE_URL = "http://localhost:8000/api/todos";
+export const API_BASE_URL =
+  (import.meta as any)?.env?.VITE_API_BASE_URL || "http://localhost:8001/api/todos";
 
 export const statusConfig = {
   todo: {

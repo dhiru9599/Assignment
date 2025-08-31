@@ -1,0 +1,5 @@
+
+# Local artifacts
+Backend/db.sqlite3
+Backend/staticfiles/
+Backend/.venv/
