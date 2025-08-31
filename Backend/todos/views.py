@@ -8,13 +8,57 @@ from django.http import JsonResponse
 from .models import Todo
 from .serializers import TodoSerializer
 
-class TodoListCreateView(ListCreateAPIView):
-    queryset = Todo.objects.all()
-    serializer_class = TodoSerializer
+@method_decorator(csrf_exempt, name='dispatch')
+class TodoListCreateView(APIView):
+    def get(self, request):
+        try:
+            todos = Todo.objects.all()
+            serializer = TodoSerializer(todos, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({"error": str(e), "message": "Failed to fetch todos"}, status=500)
 
-class TodoRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
-    queryset = Todo.objects.all()
-    serializer_class = TodoSerializer
+    def post(self, request):
+        try:
+            serializer = TodoSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e), "message": "Failed to create todo"}, status=500)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TodoRetrieveUpdateDestroyView(APIView):
+    def get_object(self, pk):
+        try:
+            return Todo.objects.get(pk=pk)
+        except Todo.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        todo = self.get_object(pk)
+        if not todo:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = TodoSerializer(todo)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        todo = self.get_object(pk)
+        if not todo:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = TodoSerializer(todo, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        todo = self.get_object(pk)
+        if not todo:
+            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        todo.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class HealthCheckView(APIView):
