@@ -20,8 +20,12 @@ services:
           name: todo-postgres
           property: connectionString
 
-  - type: static
-    name: todo-frontend
+databases:
+  - name: todo-postgres
+    plan: free
+
+staticSites:
+  - name: todo-frontend
     plan: free
     rootDir: Frontend
     buildCommand: npm ci && npm run build
@@ -32,7 +36,3 @@ services:
           name: todo-backend
           type: web
           property: url
-
-databases:
-  - name: todo-postgres
-    plan: free
