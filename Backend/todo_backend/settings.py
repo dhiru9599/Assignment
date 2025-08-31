@@ -51,20 +51,22 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Disable CSRF for API endpoints
-CSRF_TRUSTED_ORIGINS.extend([
+# Disable CSRF for API endpoints - removed CsrfViewMiddleware completely for API
+CSRF_TRUSTED_ORIGINS = [
+    "https://todo-backend-d4rk.onrender.com",
     "https://*.netlify.app",
-    "https://todo-frontend.netlify.app",
-])
+    "https://todowebapplication2.netlify.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+]
 
 # Additional CORS settings for Netlify
 CORS_ALLOW_METHODS = [
@@ -82,6 +84,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
     "https://todo-frontend.netlify.app",
+    "https://todowebapplication2.netlify.app",
     "https://*.netlify.app",
 ]
 
@@ -96,6 +99,10 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+# Security settings for production
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
+SECURE_REFERRER_POLICY = "same-origin"
 
 ROOT_URLCONF = 'todo_backend.urls'
 
